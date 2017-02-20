@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+  	<extension
+	         point="org.eclipse.ui.popupMenus">
+	      <objectContribution
+	            adaptable="true"
+	            id="QwalKeko.addNatureIProjectContribution"
+	            nameFilter="*"
+	            objectClass="org.eclipse.core.resources.IProject">
+	         
+	      <action
+	           class="qwalkeko.ToggleHistoryNatureAction"
+	           id="QwalKeko.AddNatureAction"
+	           label="Add History Nature"
+	            menubarPath="org.eclipse.ui.projectConfigure/additions">
+	      </action>
+	
+	
+	       <visibility>
+	          <not><objectState name="nature" value="damp.qwalkeko.plugin.historyNature" /></not>
+	       </visibility>
+	
+	      </objectContribution>
+	      
+	       <objectContribution
+	            adaptable="true"
+	            id="QwalKeko.removeNatureIProjectContribution"
+	            nameFilter="*"
+	            objectClass="org.eclipse.core.resources.IProject">
+	         <action
+	               class="qwalkeko.ToggleHistoryNatureAction"
+	               id="QwalKeko.RemoveNatureAction"
+	               label="Remove History Nature"
+	               menubarPath="org.eclipse.ui.projectConfigure/additions">
+	         </action>
+	
+	       <visibility>
+	          <objectState name="nature" value="damp.qwalkeko.plugin.historyNature" />
+	       </visibility>	
+		</objectContribution>
+   </extension>
+
+	<extension
+	         id="historyNature"
+	         name="History Project Nature"
+	         point="org.eclipse.core.resources.natures">
+	      <runtime>
+	         <run
+	               class="qwalkeko.HistoryNature">
+	         </run>
+	      </runtime>
+	      <builder
+	      	id="qwalkeko.HistoryBuilder" >
+	      </builder>
+	</extension>
+	
+	 <extension
+      point="org.eclipse.core.resources.natures"
+      id="qwalkekoNature"
+      name="Qwalkeko Nature">
+      <runtime>
+         <run class="qwalkeko.QwalkekoNature">
+         </run>
+      </runtime>
+   </extension>
+	
+	<extension
+         id="qwalkeko.HistoryBuilder"
+         name="History Builder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            hasNature="true">
+         <run
+               class="qwalkeko.HistoryBuilder">
+         </run></builder>
+   </extension>
+ <extension
+       point="ekeko.projectModelFactory">
+    <contributedFactory
+          factory="qwalkeko.HistoryProjectModelFactory">
+    </contributedFactory>
+ </extension>
+ <extension
+       point="ekeko.projectModelFactory">
+    <contributedFactory
+          factory="qwalkeko.QwalkekoProjectModelFactory">
+    </contributedFactory>
+ </extension>
+ <extension
+       point="org.eclipse.ui.commands">
+    <category
+          id="damp.qwalkeko.commands.category"
+          name="QwalKeko Commands Category">
+    </category>
+    <command
+          categoryId="damp.qwalkeko.commands.category"
+          id="damp.qwalkeko.commands.importRepository"
+          name="Import Repository">
+    </command>
+ </extension>
+ <extension
+       point="org.eclipse.ui.menus">
+    <menuContribution
+          allPopups="false"
+          locationURI="menu:damp.ekeko.menus.ekekoMenu?after=additions">
+       <menu
+             id="damp.qwalkeko.menus.qwalkekoMenu"
+             label="QwalKeko">
+          <command
+                commandId="damp.qwalkeko.commands.importRepository"
+                label="Convert Git Repository"
+                tooltip="Imports and converts a Git repository for QwalKeko">
+          </command>
+       </menu>
+    </menuContribution>
+ </extension>
+ <extension
+       point="org.eclipse.ui.handlers">
+    <handler
+          class="qwalkeko.ImportRepositoryHandler"
+          commandId="damp.qwalkeko.commands.importRepository">
+    </handler>
+ </extension>
+
+</plugin>

@@ -1,0 +1,49 @@
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor;
+import org.eclipse.jdt.core.dom.ChildPropertyDescriptor;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.SimplePropertyDescriptor;
+
+import ast.AstCreation;
+
+public class test {
+	
+	public void foo(){
+		int i = 0;
+		i ++;
+		
+	}
+	public static void main(String [] args) {
+		String path = "/Users/joliendeclerck/Documents/workspace/classification-java/testfile";
+		//"/Users/joliendeclerck/Documents/workspace/damp.qwalkeko.plugin/src/jolien/testfiles/testfile"
+		
+		}
+
+	
+	private static void printCU(CompilationUnit cu) {
+		List properties = cu.structuralPropertiesForType();
+		int i = 0;
+		for(Iterator it = properties.iterator(); it.hasNext(); )
+		{
+			Object descriptor = it.next();
+	        if (descriptor instanceof SimplePropertyDescriptor) {
+	            SimplePropertyDescriptor simple = (SimplePropertyDescriptor) descriptor;
+	            Object value = cu.getStructuralProperty(simple);
+	            System.out.println(simple.getId() + " (" + value.toString() + ")");
+	        } else if (descriptor instanceof ChildPropertyDescriptor) {
+	            ChildPropertyDescriptor child = (ChildPropertyDescriptor) descriptor;
+	            ASTNode childNode = (ASTNode) cu.getStructuralProperty(child);
+	            if (childNode != null) {
+	                System.out.println("Child (" + child.getId() + ") {");
+	                System.out.println(childNode);
+	                System.out.println("}");
+	            }
+	        } 
+		}
+	}
+	
+}
