@@ -1,6 +1,4 @@
 package jolien.files;
-
-import org.junit.*;
 public class PresentationExampleAfter {
 	public int i;
 

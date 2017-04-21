@@ -8,6 +8,8 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class Test {
+	//this is a test
+	
 	public static CompilationUnit createAstForFile(String path){
 		if(!path.isEmpty())
 		{
