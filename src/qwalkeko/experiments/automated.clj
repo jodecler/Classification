@@ -14,7 +14,8 @@
   (:require [clojure.repl :as repl])
   (:require [clojure.string :as string])
   (:require [clojure.java.shell :as shell])
-  (:require [jolien.classification :as classification]))
+  (:require [jolien.classification :as classification])
+  (:require [jolien.toplevelcategorize :as toplevel]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Setting up the projects locally ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -216,6 +217,7 @@
    all."
   [changelist-ungrouped]
   (let [changelist (group-by first changelist-ungrouped)]
+
     (flatten (map handle-project changelist))))
 
 
@@ -225,46 +227,12 @@
 
 (def PROJECT_FOLDER "/Users/joliendeclerck/Documents/THESIS/projects-eclipse")
 ; File containing the CSV dump
-;(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers.csv")
-(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers-less.csv")
+(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers.csv")
+;(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers-less.csv")
 ;(def BREAKERFIXER (take 30 (sort-by first (read-breaker-fixer-csv COMMITS_DUMP))))
 (def BREAKERFIXER (read-breaker-fixer-csv COMMITS_DUMP)) ;67 projects
 (def PROJECTS (create-project-list BREAKERFIXER))
 
-
-(qwalkeko.experiments.automated/clone-projects
-           qwalkeko.experiments.automated/PROJECT_FOLDER
-           qwalkeko.experiments.automated/PROJECTS)
-
-
-(qwalkeko.experiments.automated/import-projects
-          qwalkeko.experiments.automated/PROJECT_FOLDER)
-
-(qwalkeko.experiments.automated/find-all-changes
-    qwalkeko.experiments.automated/BREAKERFIXER)
-
-(def eenvoorbeeld nil)
-
-(defn de-test []
-  (let [change-list (qwalkeko.experiments.automated/find-all-changes
-    (list (first qwalkeko.experiments.automated/BREAKERFIXER)))
-        changes (:changes (first change-list))]
-    (inspector-jay.core/inspect change-list)
-    (alter-var-root #'eenvoorbeeld (constantly changes))))
-
-(defn iets []
-  (inspector-jay.core/inspect eenvoorbeeld)
-  (doseq [i eenvoorbeeld]
-    (let [sequence (first (first i))
-          changes (first sequence)
-          qwalkekochanges (first (rest changes))]
-     (print (classification/classify-changes qwalkekochanges))
-     (newline))))
-
-       
-
-(qwalkeko.experiments.automated/find-all-changes 
-  qwalkeko.experiments.automated/BREAKERFIXER)
 ;(clone-projects PROJECT_FOLDER PROJECTS)
 ;(import-projects PROJECT_FOLDER)
 ;(find-all-changes BREAKERFIXER)
