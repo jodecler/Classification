@@ -9,27 +9,57 @@
 (defn after-before []
     (automated/import-projects automated/PROJECT_FOLDER))
 
+(def multiple-file-information nil)
+(def multiple-changes nil) 
 
 (defn classification []
-; (let [ project-list (automated/find-all-changes
-;                             automated/BREAKERFIXER)
-  (let [project-list (automated/find-all-changes
-                       automated/BREAKERFIXER)]
+  (let [project-list (list (first (automated/find-all-changes
+                                    automated/BREAKERFIXER)))]
         (doseq [item project-list]
           (let [change-list (:changes item)
-                files (:changed item)]
+                files (:changed item)
+                project (:project item)
+                breaking (:breaking item)
+                fixing (:fixing item)
+                breaking_tr (:breaking_tr item)
+                fixing_tr (:fixing_tr item)]
             (inspector-jay.core/inspect item)
+            (doseq [file files]
+              (let [file-name (:file file)
+                    file-information {
+                                      :file-name filename
+                                      :file-classification (toplevel/top-level file-name)
+                                      }] 
+                (alter-var-root #'multiple-file-information (conj multiple-file-information file-information))
+               ))
             (doseq [i change-list]
               (let [sequence (first (first i))
                     changes (first sequence)
-                    qwalkekochanges (first (rest changes))]
-               (print (classification/classify-changes qwalkekochanges))
+                    qwalkekochanges (first (rest changes))
+                    classified-changes (classification/classify-changes qwalkekochanges)]
+                
+               (print classified-changes)
+               (print (type classified-changes))
                (newline)))
-            (doseq [file files]
-              (let [file-name (:file file)] 
-               (toplevel/pretty-print-type-file file-name (toplevel/top-level file-name))))))))
+            (let [all-information {
+                                   :project project
+                                   :breaking breaking
+                                   :fixing fixing
+                                   :breaking_tr breaking_tr
+                                   :fixing_tr fixing_tr
+                                   :file-information multiple-file-information}]
+              (print all-information))
+            ))))
 
-
+; {
+;     :project (nth change 0),
+;     :breaking (nth change 1),
+;     :fixing (nth change 2),
+;     :breaking_tr (nth change 3),
+;     :fixing_tr (nth change 4),
+;     :changed (first changes),
+;     :changes (second changes)
+;    }))
 
 
 
