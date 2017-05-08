@@ -227,8 +227,8 @@
 
 (def PROJECT_FOLDER "/Users/joliendeclerck/Documents/THESIS/projects-eclipse")
 ; File containing the CSV dump
-(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers.csv")
-;(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers-less.csv")
+;(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers.csv")
+(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers-less.csv")
 ;(def BREAKERFIXER (take 30 (sort-by first (read-breaker-fixer-csv COMMITS_DUMP))))
 (def BREAKERFIXER (read-breaker-fixer-csv COMMITS_DUMP)) ;67 projects
 (def PROJECTS (create-project-list BREAKERFIXER))

@@ -1,7 +1,8 @@
 (ns ast.main
   (:require [jolien.classification :as classification])
   (:require [jolien.toplevelcategorize :as toplevel])
-  (:require [qwalkeko.experiments.automated :as automated]))
+  (:require [qwalkeko.experiments.automated :as automated])
+  (:import [jolien WriteResults]))
 
 (defn before []
     (automated/clone-projects automated/PROJECT_FOLDER
@@ -11,10 +12,22 @@
 
 (def multiple-file-information nil)
 (def multiple-changes nil) 
+(def new-information-list nil)
 
-(defn classification []
+;delete 
+(def minder-tijd-lijst nil)
+(defn minder-tijd []
   (let [project-list (list (first (automated/find-all-changes
                                     automated/BREAKERFIXER)))]
+   (def minder-tijd-lijst project-list)))
+
+(defn classification []
+; uncomment 
+;  (let [project-list (list (first (automated/find-all-changes
+;                                    automated/BREAKERFIXER)))]
+
+   (let [project-list minder-tijd-lijst]
+     (alter-var-root #'new-information-list (constantly nil))
         (doseq [item project-list]
           (let [change-list (:changes item)
                 files (:changed item)
@@ -23,48 +36,37 @@
                 fixing (:fixing item)
                 breaking_tr (:breaking_tr item)
                 fixing_tr (:fixing_tr item)]
-            (inspector-jay.core/inspect item)
             (doseq [file files]
               (let [file-name (:file file)
-                    file-information {
-                                      :file-name filename
-                                      :file-classification (toplevel/top-level file-name)
-                                      }] 
-                (alter-var-root #'multiple-file-information (conj multiple-file-information file-information))
-               ))
+                    file-information (java.util.HashMap. {
+                                                          :file-name file-name
+                                                          :file-classification (toplevel/top-level file-name)
+                                                          })] 
+                (alter-var-root #'multiple-file-information (constantly  (conj multiple-file-information (list file-information))))))
             (doseq [i change-list]
               (let [sequence (first (first i))
                     changes (first sequence)
                     qwalkekochanges (first (rest changes))
                     classified-changes (classification/classify-changes qwalkekochanges)]
-                
-               (print classified-changes)
-               (print (type classified-changes))
-               (newline)))
-            (let [all-information {
-                                   :project project
-                                   :breaking breaking
-                                   :fixing fixing
-                                   :breaking_tr breaking_tr
-                                   :fixing_tr fixing_tr
-                                   :file-information multiple-file-information}]
-              (print all-information))
-            ))))
+               (alter-var-root #'multiple-changes (constantly (conj multiple-changes (list classified-changes))))))
+             (let [new-information (java.util.HashMap. {
+                                                        :project project
+                                                        :breaking breaking
+                                                        :fixing fixing
+                                                        :breaking_tr breaking_tr
+                                                        :fixing_tr fixing_tr
+                                                        :file-information multiple-file-information
+                                                        :changes-information multiple-changes})]
+               (alter-var-root #'new-information-list (constantly (conj new-information-list (list new-information))))))))
+   (inspector-jay.core/inspect new-information-list)
+   new-information-list
+   (. WriteResults aTest (to-array (vec new-information-list))))
 
-; {
-;     :project (nth change 0),
-;     :breaking (nth change 1),
-;     :fixing (nth change 2),
-;     :breaking_tr (nth change 3),
-;     :fixing_tr (nth change 4),
-;     :changed (first changes),
-;     :changes (second changes)
-;    }))
-
-
-
-
-
+(defn write-test []
+  (. WriteResults createFile)
+  (. WriteResults writeString "aa")
+  (. WriteResults writeString "bb")
+  (. WriteResults stopWriting))
 
 
 ;(defn algemene-loop [first-file second-file]
