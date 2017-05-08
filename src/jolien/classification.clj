@@ -11,8 +11,8 @@
 (defn classify-change [classification change]
 ;  (let [categories (set (logic/run* [?classifications] ;set om duplicaten te filteren
 ;                         (change-classification change ?classifications)))]
- (let [categories  (logic/run* [?classifications ?iets]
-                     (change-classification change ?classifications ?iets))]
+ (let [categories  (logic/run* [?classifications]
+                     (change-classification change ?classifications))]
     (reduce
       (fn [classification category]
         (update-in classification 
@@ -51,12 +51,12 @@
     [(changes/change|insert change)
      (changes/change-rightparent change ?node)]))
 
-(defn change-classification [change ?classtype iets]
+(defn change-classification [change ?classtype]
   (logic/all
     (logic/conde
-      [(change-exception change iets)
+      [(change-exception change )
       (logic/== ?classtype [:exception])]
-      [ (change-field-name change iets) 
+      [ (change-field-name change ) 
        ;[(logic/onceo (change|test change)) ; filter duplicaten
        (logic/== ?classtype [:field-name-change ])]
       [ (change-field-type change) ;;;;ok
@@ -67,17 +67,17 @@
        (logic/== ?classtype [:annotation-test-added])]
       [ (change-assert-statement change)
        (logic/== ?classtype [:change|asserte-statement])]
-      [ (change-modifier change iets) 
+      [ (change-modifier change ) 
        (logic/== ?classtype [:change|modifier])]      
-      [(change-method-invocation-parameter change iets)
+      [(change-method-invocation-parameter change )
        (logic/== ?classtype [:change-method-invocation-parameter])]
-      [(change-if-statement-expression change iets)
+      [(change-if-statement-expression change )
        (logic/== ?classtype [:change-if-statement-expression])]
-      [(change-if-statement-consequence change iets)
+      [(change-if-statement-consequence change )
       (logic/== ?classtype [:change-if-statement-consequence])]
-      [(change-if-statement-alternative change iets)
+      [(change-if-statement-alternative change )
       (logic/== ?classtype [:change-if-statement-alternative])]
-      [ (ast|switch change iets)
+      [ (ast|switch change )
        (logic/== ?classtype [:switch-statement])]
 
 
@@ -131,7 +131,7 @@
   (logic/fresh []
     (jdt/ast :Modifier node)))
 
-(defn change-modifier [change ?iets]
+(defn change-modifier [change]
   (logic/fresh [?node]
     (logic/all
       (change-node|affects change ?node)
@@ -168,17 +168,17 @@
       (field-type-change ?node))))
 
 ; FIELD NAME CHANGE
-(defn field-name-change [node ?iets]
+(defn field-name-change [node ?name]
   (logic/fresh [?parent]
     (jdt/ast-parent node ?parent)
     (jdt/ast :VariableDeclarationFragment ?parent)))
 
-(defn change-field-name [change iets]
-  (logic/fresh [?node]
+(defn change-field-name [change ]
+  (logic/fresh [?node ?name]
     (logic/all
       (change-node|affects change ?node)
       (field-declaration ?node)
-      (field-name-change ?node iets))))
+      (field-name-change ?node ?name))))
 
 ; METHOD INVOCATION REMOVE PARAM
 (defn param-in-method-invocation [node]
@@ -186,8 +186,8 @@
     (jdt/ast-parent node ?parent)
     (ast|method-invocation ?parent)))
 
-(defn change-method-invocation-parameter [change ?iets]
-  (logic/fresh [?node ?parent ?parent-parent ?nogiets]
+(defn change-method-invocation-parameter [change ]
+  (logic/fresh [?node ?parent ?parent-parent ]
     (change-node|affects change ?node)
     (param-in-method-invocation ?node)
     (changes/change-property change :arguments)))
@@ -214,30 +214,30 @@
     (jdt/has :elseStatement statement node)))
 
 
-(defn change-if-statement-expression [change ?iets]
+(defn change-if-statement-expression [change ]
   (logic/fresh [?node ?statement ?value ]
     (change-node|affects change ?node)
     (ast|if-statement ?node ?statement)
     (if-statement|expression ?node ?statement)))
 
-(defn change-if-statement-consequence [change ?iets]
+(defn change-if-statement-consequence [change ]
   (logic/fresh [?node ?statement ?value ]
     (change-node|affects change ?node)
     (ast|if-statement ?node ?statement)
     (if-statement|consequence ?node ?statement)))
 
-(defn change-if-statement-alternative [change ?iets]
+(defn change-if-statement-alternative [change ]
   (logic/fresh [?node ?statement ?value ]
     (change-node|affects change ?node)
     (ast|if-statement ?node ?statement)
     (if-statement|alternative ?node ?statement)))
 
 ; nog testen
-(defn ast|switch [node ?parent]
+(defn ast|switch [node]
   (logic/fresh []
     (jdt/ast :SwitchCase node)))
  
-(defn change-exception [change ?iets]
+(defn change-exception [change ]
   (logic/fresh [?node ?parent]
     (change-node|affects change ?node)
     (jdt/ast-parent+ ?node ?parent)
