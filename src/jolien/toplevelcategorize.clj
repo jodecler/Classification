@@ -1,16 +1,6 @@
 (ns jolien.toplevelcategorize
   (:import [jolien.ast AstCreation]))
 
- ; (:require [jolien.testfilecategorize :as testfilecategorize])
- ; (:require [jolien.sourcefilecategorize :as sourcefilecategorize]))
-
-
-(defn pretty-print-type-file [filename filetype]
-  (print filename)
-  (print " is of the type ")
-  (print filetype)
-  (newline))
-
 (defn is-presentation-file [file-path]
    (or 
      (.contains file-path ".html")
@@ -46,17 +36,14 @@
     (is-presentation-file file-name-before)
     'presentation-layer
     (is-build-file file-name-before)
-    'build-layer ;(pretty-print-type-file file-name-before "Build Layer")
+    'build-layer
     (is-source-file file-name-before)
-    'source-layer ;(pretty-print-type-file file-name-before "Source Layer"))
-      ;(sourcefilecategorize/type-of-source-file-change file-name-before file-name-after))
+    'source-layer 
     (is-test-file file-name-before)
-    'test-layer ;(pretty-print-type-file file-name-before "Test Layer"))
-      ;(testfilecategorize/type-of-test-file-change file-name-before file-name-after))
+    'test-layer 
     (is-configuration-file file-name-before)
-    'configuration-layer ;(pretty-print-type-file file-name-before "Configuration Layer")
-    
+    'configuration-layer
     :else
-    'unclassified )) ;(pretty-print-type-file file-name-before "Unclassified Layer")))
+    'unclassified)) 
 
 

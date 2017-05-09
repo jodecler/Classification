@@ -7,7 +7,9 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 public class AstCreation {
-	
+	/*
+	 * Method that creates an AST for a compilation unit
+	 */
 	public static CompilationUnit createAstForFile(String path){
 		if(!path.isEmpty())
 		{
@@ -19,7 +21,6 @@ public class AstCreation {
 			parser.setBindingsRecovery(true);
 			
 			CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-			//System.out.println(cu.toString());
 			return cu;
 		}
 		else {

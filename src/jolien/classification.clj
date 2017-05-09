@@ -1,16 +1,12 @@
 (ns jolien.classification
-  (:require [qwalkeko.clj.functionalnodes :as functionalnodes])
   (:require [jolien.toplevelcategorize :as categorize])
   (:require [clojure.core.logic :as logic])
   (:require [qwalkeko.clj.functionalnodes :as changes])
-  (:require [damp.ekeko.jdt
-             [ast :as jdt]])
+  (:require [damp.ekeko.jdt [ast :as jdt]])
   (:import [jolien.ast AstCreation]))
 
 ; GENERAL
 (defn classify-change [classification change]
-;  (let [categories (set (logic/run* [?classifications] ;set om duplicaten te filteren
-;                         (change-classification change ?classifications)))]
  (let [categories  (logic/run* [?classifications]
                      (change-classification change ?classifications))]
     (reduce
@@ -28,17 +24,6 @@
               {}
               changes)]
    list))
-
-(defn differences-two-files [first-filepath second-filepath]
-  (let [first-ast (. AstCreation createAstForFile first-filepath)
-		    second-ast (. AstCreation createAstForFile second-filepath)
-        differencer (functionalnodes/get-ast-changes first-ast second-ast)
-        changes (:changes differencer)
-                number-of-uncassified-changes (count changes)];not correct yet
-    (inspector-jay.core/inspect changes)
-    (print (classify-changes changes))
-    (newline)
-    (newline)))
 
 (defn change-node|affects [change ?node]
   (logic/condu
@@ -78,11 +63,7 @@
       [(change-if-statement-alternative change )
       (logic/== ?classtype [:change-if-statement-alternative])]
       [ (ast|switch change )
-       (logic/== ?classtype [:switch-statement])]
-
-
-      ;...
-      )))
+       (logic/== ?classtype [:switch-statement])])))
 
 ; TEST ANNOTATION ADDED
 (defn ast|annotation [ast ]
