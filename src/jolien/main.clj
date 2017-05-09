@@ -22,11 +22,10 @@
    (def minder-tijd-lijst project-list)))
 
 (defn classification []
-; uncomment 
-;  (let [project-list (list (first (automated/find-all-changes
-;                                    automated/BREAKERFIXER)))]
+  (let [project-list (automated/find-all-changes
+                       automated/BREAKERFIXER)]
 
-   (let [project-list minder-tijd-lijst]
+   ;(let [project-list minder-tijd-lijst]
      (alter-var-root #'new-information-list (constantly nil))
         (doseq [item project-list]
           (let [change-list (:changes item)
@@ -96,7 +95,9 @@
                     (. WriteResults writeString ",")
                     (. WriteResults writeString (.toString file-categorie))
                     (. WriteResults writeString ",")
-                    (. WriteResults writeString (.toString change-keyword)))))))))
+                    (. WriteResults writeString (.toString (first change-keyword)))
+                    (. WriteResults writeString "\n")
+                    (. WriteResults flushWriting))))))))
 
 (do
   (. WriteResults stopWriting)))

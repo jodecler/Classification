@@ -19,7 +19,7 @@ public class WriteResults {
 	}
 	
 	public static void createFile(){
-		FILE = new File("/Users/joliendeclerck/Documents/THESIS/output.txt");
+		FILE = new File("/Users/joliendeclerck/Documents/THESIS/output.csv");
 		try {
 			FILEWRITER = new FileWriter (FILE);
 		} catch (IOException e) {
@@ -31,10 +31,16 @@ public class WriteResults {
 		} catch (IOException e) {
 		}
 	}
+	public static void flushWriting(){
+		try{
+			FILEWRITER.flush();
+		}catch (Exception e){}
+		
+	}
 	public static void stopWriting(){
 		
 		try {
-			FILEWRITER.flush();
+			
 			FILEWRITER.close();
 		} catch (IOException e) {
 		}

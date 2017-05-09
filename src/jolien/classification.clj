@@ -48,7 +48,7 @@
      (changes/change-rightparent change ?node)]
     [(changes/change|delete change)
      (changes/change-original change ?node)]
-    [(changes/change|insert change)
+    [(changes/change|move change)
      (changes/change-rightparent change ?node)]))
 
 (defn change-classification [change ?classtype]
@@ -243,26 +243,4 @@
     (jdt/ast-parent+ ?node ?parent)
     (jdt/ast :CatchClause ?parent)))
   
-;getLocationInParent
-;------------------------------------
-
-
-;
-;(defn test-top-level []
-; (categorize/top-level ;test
-;   "/Users/joliendeclerck/Documents/workspace/damp.qwalkeko.plugin/src/jolien/files/PresentationExampleAfter.java")
-;  (categorize/top-level ;test
-;   "/Users/joliendeclerck/Documents/workspace/damp.qwalkeko.plugin/src/jolien/files/TestFile.java")
-;  (categorize/top-level ;pres
-;   "/Users/joliendeclerck/Documents/workspace/damp.qwalkeko.plugin/src/jolien/files/CssTestFile.css")
-;  (categorize/top-level ;pres
-;   "/Users/joliendeclerck/Documents/workspace/damp.qwalkeko.plugin/src/jolien/files/HtmlTestFile.html")
-;  (categorize/top-level ;build
-;   "/Users/joliendeclerck/Documents/workspace/damp.qwalkeko.plugin/src/jolien/files/XmlTestFile.xml")
-;  (categorize/top-level ;source
-;   "/Users/joliendeclerck/Documents/workspace/damp.qwalkeko.plugin/src/jolien/files/Source.java"))
-
-
-
-
 
