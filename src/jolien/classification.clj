@@ -5,8 +5,8 @@
   (:require [damp.ekeko.jdt [ast :as jdt]])
   (:import [jolien.ast AstCreation]))
 
-; GENERAL
 (defn classify-change [classification change]
+  "Classify one change"
  (let [categories  (logic/run* [?classifications]
                      (change-classification change ?classifications))]
     (reduce
@@ -19,6 +19,7 @@
 
 
 (defn classify-changes [changes]
+  "loop over changes and make classification"
  (let [list (reduce
               classify-change
               {}
@@ -26,6 +27,7 @@
    list))
 
 (defn change-node|affects [change ?node]
+  "Get the node affected by a change"
   (logic/condu
     [(changes/change|insert change)
      (changes/change-rightparent change ?node)]
@@ -37,6 +39,7 @@
      (changes/change-rightparent change ?node)]))
 
 (defn change-classification [change ?classtype]
+  "Actual classification"
   (logic/all
     (logic/conde
       [(change-exception change )
@@ -65,14 +68,16 @@
       [ (ast|switch change )
        (logic/== ?classtype [:switch-statement])])))
 
-; TEST ANNOTATION ADDED
+
 (defn ast|annotation [ast ]
+  "Annotation change of a method declaration"
   (logic/fresh [?parent ?prop]
     (jdt/ast :MarkerAnnotation ast)
     (jdt/ast-parent ast ?parent)
     (jdt/ast :MethodDeclaration ?parent)))
 
 (defn annotation|test-annotation [annotation]
+  "Annotation changed, of a test"
   (logic/fresh [?name ?str]
     (jdt/has :typeName annotation ?name)
     (jdt/name|simple-string ?name ?str)
@@ -80,19 +85,21 @@
       (logic/== true (.startsWith ?str "Test")))))
 
 (defn change-test-annotation [change]
+  "Test annotation changed, must be a test annotation and a change of annotation"
   (logic/fresh [?node]
     (logic/all 
        (change-node|affects change ?node)
        (ast|annotation ?node )
        (annotation|test-annotation ?node))))
 
-; ASSERT STATEMENT CHANGED
 (defn ast|method-invocation [node]
+  "node must be a method invocation"
   (logic/fresh [?parent]
     (jdt/ast-parent+ node ?parent)
     (jdt/ast :MethodInvocation ?parent)))
 
 (defn method-invocation|assert [node]
+  "Method invocation of an assert-statement"
   (logic/fresh [?name ?parent ?str]
     (jdt/ast-parent node ?parent)
     (jdt/has :name ?parent ?name)
@@ -101,47 +108,52 @@
       (logic/== true (.startsWith ?str "assert")))))
 
 (defn change-assert-statement [change]
+  "Change assert statement, must be a method invocation of an assert"
   (logic/fresh [?node]
     (logic/all
       (change-node|affects change ?node)
       (ast|method-invocation ?node)
       (method-invocation|assert ?node))))
 
-; MODIFIER
 (defn modifier [node]
+  "node must be a modifier"
   (logic/fresh []
     (jdt/ast :Modifier node)))
 
 (defn change-modifier [change]
+  "changed node is a modifier"
   (logic/fresh [?node]
     (logic/all
       (change-node|affects change ?node)
       (modifier ?node))))
 
-; IMPORT STATEMENT
 (defn import-statement [node]
+  "node is import declaration"
   (logic/fresh [?parent]
     (jdt/ast-parent+ node ?parent)
     (jdt/ast :ImportDeclaration ?parent)))
 
 (defn change-import-statement [change]
+  "change is import statement"
   (logic/fresh [?node]
     (logic/all
       (change-node|affects change ?node)
       (import-statement ?node))))
-  
-; FIELD TYPE CHANGE
+
 (defn field-declaration [node]
+  "node is a fielddeclaration"
   (logic/fresh [?parent ?parent-parent]
     (jdt/ast-parent+ node ?parent)
     (jdt/ast :FieldDeclaration ?parent)))
 
 (defn field-type-change [node]
+  "change of a type"
   (logic/fresh [?parent]
     (jdt/ast-parent node ?parent)
     (jdt/ast :SimpleType ?parent)))
 
 (defn change-field-type [change]
+  "field type change, change of type and field"
   (logic/fresh [?node ?field]
     (logic/all 
       (change-node|affects change ?node)
@@ -150,75 +162,85 @@
 
 ; FIELD NAME CHANGE
 (defn field-name-change [node ?name]
+  "name of a field changed"
   (logic/fresh [?parent]
     (jdt/ast-parent node ?parent)
     (jdt/ast :VariableDeclarationFragment ?parent)))
 
 (defn change-field-name [change ]
+  "field name change, change of field and name"
   (logic/fresh [?node ?name]
     (logic/all
       (change-node|affects change ?node)
       (field-declaration ?node)
       (field-name-change ?node ?name))))
 
-; METHOD INVOCATION REMOVE PARAM
+
 (defn param-in-method-invocation [node]
+  "parameter in method invocation"
   (logic/fresh [?parent]
     (jdt/ast-parent node ?parent)
     (ast|method-invocation ?parent)))
 
 (defn change-method-invocation-parameter [change ]
+  "change of method invocation, parameter"
   (logic/fresh [?node ?parent ?parent-parent ]
     (change-node|affects change ?node)
     (param-in-method-invocation ?node)
     (changes/change-property change :arguments)))
 
-; IF STATEMENT
 (defn ast|if-statement [node ?parent]
+  "if-statement"
   (logic/fresh []
     (jdt/ast-parent+ node ?parent)
     (jdt/ast :IfStatement ?parent)))
 
 (defn if-statement|expression [node statement]
+  "expression of if-statement"
   (logic/fresh []
     (jdt/ast-parent node statement)
     (jdt/has :expression statement node)))
 
 (defn if-statement|consequence [node statement]
+  "consequence in if-statement"
   (logic/fresh []
     (jdt/ast-parent node statement)
     (jdt/has :thenStatement statement node)))
 
 (defn if-statement|alternative [node statement]
+  "alternative in if-statement"
   (logic/fresh []
     (jdt/ast-parent node statement)
     (jdt/has :elseStatement statement node)))
 
-
 (defn change-if-statement-expression [change ]
+  "change if statement expression"
   (logic/fresh [?node ?statement ?value ]
     (change-node|affects change ?node)
     (ast|if-statement ?node ?statement)
     (if-statement|expression ?node ?statement)))
 
 (defn change-if-statement-consequence [change ]
+  "change in consequence of if-statement"
   (logic/fresh [?node ?statement ?value ]
     (change-node|affects change ?node)
     (ast|if-statement ?node ?statement)
     (if-statement|consequence ?node ?statement)))
 
 (defn change-if-statement-alternative [change ]
+  "change in alternative of if-statement"
   (logic/fresh [?node ?statement ?value ]
     (change-node|affects change ?node)
     (ast|if-statement ?node ?statement)
     (if-statement|alternative ?node ?statement)))
 
-; nog testen
 (defn ast|switch [node]
+  "switch statement"
   (logic/fresh []
     (jdt/ast :SwitchCase node)))
  
 (defn change-exception [change ]
+  "Catch exception"
   (logic/fresh [?node ?parent]
     (change-node|affects change ?node)
     (jdt/ast-parent+ ?node ?parent)

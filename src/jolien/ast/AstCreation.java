@@ -42,10 +42,7 @@ public class AstCreation {
 				buf = new char[1024];
 			}
 			reader.close();
-			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		return  data.toString();
 	}

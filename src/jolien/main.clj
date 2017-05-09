@@ -5,10 +5,12 @@
   (:import [jolien WriteResults]))
 
 (defn before []
+  "Clone projects from GitHub"
     (automated/clone-projects automated/PROJECT_FOLDER
              automated/PROJECTS))
 
 (defn after-before []
+  "Import projects"
     (automated/import-projects automated/PROJECT_FOLDER))
 
 (def multiple-file-information nil)
@@ -16,6 +18,7 @@
 (def new-information-list nil)
 
 (defn classification []
+  "Calculate changes and classify changes"
   (let [project-list (automated/find-all-changes
                        automated/BREAKERFIXER)]
      (alter-var-root #'new-information-list (constantly nil))
@@ -52,6 +55,7 @@
    new-information-list)
 
 (defn write-test []
+  "Write results to file"
   (do
     (. WriteResults createFile)
     (. WriteResults writeString "project,breaking,fixing,breaking_tr,fixing_tr,filename,filecategorie,classified")
@@ -72,7 +76,6 @@
                 changes (first (nth (rest combined) 0))]
             (doseq [change changes]
               (let [change-keyword (key change)]
-                    
                     (. WriteResults writeString (.toString project))
                     (. WriteResults writeString ",")
                     (. WriteResults writeString (.toString breaking))
@@ -90,7 +93,6 @@
                     (. WriteResults writeString (.toString (first change-keyword)))
                     (. WriteResults writeString "\n")
                     (. WriteResults flushWriting))))))))
-
 (do
   (. WriteResults stopWriting)))
 
