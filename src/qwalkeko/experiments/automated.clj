@@ -13,9 +13,7 @@
              [ast :as jdt]])
   (:require [clojure.repl :as repl])
   (:require [clojure.string :as string])
-  (:require [clojure.java.shell :as shell])
-  (:require [jolien.classification :as classification])
-  (:require [jolien.toplevelcategorize :as toplevel]))
+  (:require [clojure.java.shell :as shell]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Setting up the projects locally ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -120,8 +118,7 @@
 (defn convert-project-name-to-graph
   "Given the name of a project ('user/repo'), find the project and create a graph"
   [projectname]
-  (let [projects (filter #(instance? qwalkeko.HistoryProjectModel %)
-                   (damp.ekeko.ekekomodel/all-project-models))
+  (let [projects (damp.ekeko.ekekomodel/all-project-models)
         history (first (filter #(is-qwalkeko-project-named? % projectname) projects))]
     (graph/convert-model-to-graph history)))
 
@@ -145,9 +142,8 @@
   "Given a graph and the breaking and fixing commits, returns a list of changed
    files and the changes. For the changes, qwalkeko is used."
   [graph breaking fixing]
-  (let [changed (filter 
-                  #(.endsWith (:file %) ".java")
-                  (filter #(= (:status %) :edit) (graph/file-infos fixing))) ; take only edits of files of the fixing commit (not new/deleted files)
+  (print 'ok-find-changes)
+  (let [changed (filter #(= (:status %) :edit) (graph/file-infos fixing)) ; take only edits of files of the fixing commit (not new/deleted files)
         changes (doall ; force evaluation
                   (map
                     (fn [changed]
@@ -163,7 +159,8 @@
     ; Qwalkeko creates folders of the versions it analyses. Clean them up.
     (graph/ensure-delete breaking)
     (graph/ensure-delete fixing)
-    (list changed changes)))
+    (list changed changes))
+  (print 'ok-find-changes))
 
 (defn read-breaker-fixer-csv
   "Takes the path to a CSV dump of the form: \"project\",\"breaker\",\"fixer\",\"breaker_tr\",\"fixer_tr\".
@@ -191,6 +188,7 @@
   (let [breaking (find-commit-in-graph graph (nth change 1))
         fixing (find-commit-in-graph graph (nth change 2))
         changes (find-changes graph breaking fixing)]
+    (print (nth change 0))
     {
      :project (nth change 0),
      :breaking (nth change 1),
@@ -209,6 +207,8 @@
   (let [name (first entry)
         changes (second entry)
         g (convert-project-name-to-graph name)]
+    (print name)
+    (newline)
     (map #(handle-change g %) changes)))
 
 (defn find-all-changes
@@ -217,7 +217,6 @@
    all."
   [changelist-ungrouped]
   (let [changelist (group-by first changelist-ungrouped)]
-
     (flatten (map handle-project changelist))))
 
 

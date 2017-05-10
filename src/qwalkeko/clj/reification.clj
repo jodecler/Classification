@@ -105,7 +105,10 @@
   (condp = status
     qwalkeko.ChangedFileInfo$Status/ADD :add
     qwalkeko.ChangedFileInfo$Status/EDIT :edit
-    qwalkeko.ChangedFileInfo$Status/DELETE :delete))
+    qwalkeko.ChangedFileInfo$Status/DELETE :delete
+    :edit
+    )
+  )
     
     
 

@@ -7,7 +7,7 @@ package qwalkeko;
 
 public class ChangedFileInfo {
 	public enum Status {
-	    ADD, DELETE, EDIT
+	    ADD, DELETE, EDIT;
 	}
 	
 	private String fileName;
