@@ -20,7 +20,7 @@
 (defn classification []
   "Calculate changes and classify changes"
   (let [project-list (automated/find-all-changes
-                       automated/BREAKERFIXER)]
+                        automated/BREAKERFIXER)]
      (alter-var-root #'new-information-list (constantly nil))
         (doseq [item project-list]
           (let [change-list (:changes item)

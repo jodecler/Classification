@@ -64,6 +64,10 @@
    overrides the usual Ekeko building with its own (HistoryProjectModel.buildMetaProduct),
    which creates a resources/ folder within the project.
 
+   To (hopefully) save memory and avoid GC crashes, the projects are closed
+   after the nature has been added. Opening should be done before looking for
+   changes.
+
    The code here is a clojure translation of the code in ImportRepositoryHandler.java"
   [location]
   (let [project-name (.getName (.getParentFile location))
@@ -81,9 +85,10 @@
       (.waitFor proc)
       (.open project nil)
       (damp.util.Natures/addNature project qwalkeko.HistoryNature/NATURE_ID)
-      (damp.util.Natures/addNature project damp.ekeko.EkekoNature/NATURE_ID)
+      ;(damp.util.Natures/addNature project damp.ekeko.EkekoNature/NATURE_ID)
       ; Poor man's "refresh after Nature analysis is done"
       (Thread/sleep 10000)
+      (.close project nil)
       (.refreshLocal project org.eclipse.core.resources.IProject/DEPTH_INFINITE nil)
       project)))
 
@@ -99,6 +104,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Finding changes ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Some obvious overlap between the following few functions.
 
 (defn convert-project-to-graph
   "Given an eclipse project (not ekeko project), creates the graph after
@@ -122,6 +129,17 @@
         history (first (filter #(is-qwalkeko-project-named? % projectname) projects))]
     (graph/convert-model-to-graph history)))
 
+(defn sanitize-project-name
+  [name]
+  (string/replace name #"/" "-"))
+
+(defn get-eclipse-project-by-project-name
+  [projectname]
+  (let [eclipseroot (.getRoot (org.eclipse.core.resources.ResourcesPlugin/getWorkspace))
+        name (sanitize-project-name projectname)
+        project (.getProject eclipseroot name)]
+    project))
+
 (defn find-commit-in-graph
   "Given a project graph and a commit SHA, finds the commit object"
   [graph id]
@@ -142,7 +160,6 @@
   "Given a graph and the breaking and fixing commits, returns a list of changed
    files and the changes. For the changes, qwalkeko is used."
   [graph breaking fixing]
-  (print 'ok-find-changes)
   (let [changed (filter #(= (:status %) :edit) (graph/file-infos fixing)) ; take only edits of files of the fixing commit (not new/deleted files)
         changes (doall ; force evaluation
                   (map
@@ -159,8 +176,7 @@
     ; Qwalkeko creates folders of the versions it analyses. Clean them up.
     (graph/ensure-delete breaking)
     (graph/ensure-delete fixing)
-    (list changed changes))
-  (print 'ok-find-changes))
+    (list changed changes)))
 
 (defn read-breaker-fixer-csv
   "Takes the path to a CSV dump of the form: \"project\",\"breaker\",\"fixer\",\"breaker_tr\",\"fixer_tr\".
@@ -188,7 +204,6 @@
   (let [breaking (find-commit-in-graph graph (nth change 1))
         fixing (find-commit-in-graph graph (nth change 2))
         changes (find-changes graph breaking fixing)]
-    (print (nth change 0))
     {
      :project (nth change 0),
      :breaking (nth change 1),
@@ -201,15 +216,22 @@
 
 (defn handle-project
   "Helper function (define it in find-all-changes?). Given a project name and
-   a list of change entries (see handle-change), creates a graph, finds the
-   changes for the entries and returns it all."
+   a list of change entries (see handle-change), it returns the Qwalkeko changes
+   for the entries."
   [entry]
   (let [name (first entry)
-        changes (second entry)
-        g (convert-project-name-to-graph name)]
-    (print name)
-    (newline)
-    (map #(handle-change g %) changes)))
+        project (get-eclipse-project-by-project-name name)
+        changes (second entry)]
+    (.open project nil)
+    (damp.util.Natures/removeNature project damp.ekeko.EkekoNature/NATURE_ID)
+    (damp.util.Natures/addNature project damp.ekeko.EkekoNature/NATURE_ID)
+    ; Poor man's "refresh after Ekeko population is done"
+    (Thread/sleep 10000)
+    (let [g (convert-project-name-to-graph name)
+          results (map #(handle-change g %) changes)]
+      (damp.util.Natures/removeNature project damp.ekeko.EkekoNature/NATURE_ID)
+      (.close project nil)
+      results)))
 
 (defn find-all-changes
   "Given a list of changes, each a list of project, breaker sha, fixer sha,
@@ -219,16 +241,15 @@
   (let [changelist (group-by first changelist-ungrouped)]
     (flatten (map handle-project changelist))))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Actual action ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def PROJECT_FOLDER "/Users/joliendeclerck/Documents/THESIS/projects-eclipse")
 ; File containing the CSV dump
-;(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers.csv")
+(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers.csv")
 ;(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers-less.csv")
-(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers-less2.csv")
+;(def COMMITS_DUMP "/Users/joliendeclerck/Documents/THESIS/java-fixers-less2.csv")
 ;(def BREAKERFIXER (take 30 (sort-by first (read-breaker-fixer-csv COMMITS_DUMP))))
 (def BREAKERFIXER (read-breaker-fixer-csv COMMITS_DUMP)) ;67 projects
 (def PROJECTS (create-project-list BREAKERFIXER))

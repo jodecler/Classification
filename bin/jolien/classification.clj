@@ -234,12 +234,13 @@
     (ast|if-statement ?node ?statement)
     (if-statement|alternative ?node ?statement)))
 
-(defn ast|switch [node]
+(defn ast|switch [change]
   "switch statement"
-  (logic/fresh []
-    (jdt/ast :SwitchCase node)))
+  (logic/fresh [?node]
+    (change-node|affects change ?node)
+    (jdt/ast :SwitchCase ?node)))
  
-(defn change-exception [change ]
+(defn change-exception [change]
   "Catch exception"
   (logic/fresh [?node ?parent]
     (change-node|affects change ?node)
